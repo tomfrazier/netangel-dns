@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require 'netangel/dns/cli'
+Netangel::Dns::Cli::Main.start
