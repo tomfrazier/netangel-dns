@@ -5,10 +5,6 @@ module Netangel
 
     class CelluloidDns < Celluloid::DNS::Server
       def process( domain_name, resource_class, transaction )
-
-        # TODO: Remove this
-        puts domain_name
-
         @resolver ||= Celluloid::DNS::Resolver.new(
           [[:udp, Netangel::Dns.config.upstream_dns, 53],
            [:tcp, Netangel::Dns.config.upstream_dns, 53]]
@@ -18,7 +14,7 @@ module Netangel
 
         # See https://github.com/celluloid/celluloid-dns/issues/13
         unless domain_name.encoding.to_s == 'UTF-8'
-          puts "Bad encoding (#{domain_name.encoding}) for #{domain_name}".red
+          puts "#{ip_address}\t#{domain_name}\tBad encoding (#{domain_name.encoding})".red
           transaction.fail!( :NXDomain )
           return
         end
@@ -32,7 +28,7 @@ module Netangel
           ####################
 
           if DataStore.in_list?( 'custom_whitelist', id: client_id, value: domain_name )
-            puts 'TRUSTED!'.green
+            puts "#{ip_address}\t#{domain_name}\t#{'TRUSTED!'.green}" if Verbose
             transaction.passthrough!( @resolver )
             return
           end
@@ -42,7 +38,7 @@ module Netangel
           ####################
 
           if DataStore.in_list?( 'custom_blacklist', id: client_id, value: domain_name )
-            puts 'DENIED!'.red
+            puts "#{ip_address}\t#{domain_name}\t#{'DENIED!'.red}" if Verbose
             transaction.fail!( :NXDomain )
             return
           end
@@ -54,7 +50,7 @@ module Netangel
           Netangel::Dns::config.enabled_whitelists.each do |whitelist|
             if DataStore.in_list?( 'whitelists', id: client_id, value: whitelist )
               if DataStore.in_list?( 'sites', id: whitelist, value: domain_name )
-                puts 'TRUSTED!'.green
+                puts "#{ip_address}\t#{domain_name}\t#{'TRUSTED!'.green}" if Verbose
                 transaction.passthrough!( @resolver )
                 return
               end
@@ -68,7 +64,7 @@ module Netangel
           Netangel::Dns::config.enabled_blacklists.each do |blacklist|
             if DataStore.in_list?( 'blacklists', id: client_id, value: blacklist )
               if DataStore.in_list?( 'sites', id: blacklist, value: domain_name )
-                puts 'DENIED!'.red
+                puts "#{ip_address}\t#{domain_name}\t#{'DENIED!'.red}" if Verbose
                 transaction.fail!( :NXDomain )
                 return
               end
@@ -82,7 +78,7 @@ module Netangel
           Netangel::Dns::config.enabled_safesearch.each do |safesearch_list|
             if DataStore.in_list?( 'safesearch', id: client_id, value: safesearch_list )
               if DataStore.in_list?( 'sites', id: safesearch_list, value: domain_name )
-                puts 'ENFORCED SAFESEARCH!'.blue
+                puts "#{ip_address}\t#{domain_name}\t#{'ENFORCED SAFESEARCH!'.blue}" if Verbose
                 safesearch_ip = DataStore.find_safesearch_ip( safesearch_list )
                 if safesearch_ip
                   transaction.respond!( safesearch_ip )
@@ -96,6 +92,7 @@ module Netangel
         end
 
         # If the DNS query has gotten to this point, forward requst to upstream server
+        puts "#{ip_address}\t#{domain_name}" if Verbose
         transaction.passthrough!( @resolver )
 
       rescue ArgumentError => e

@@ -1,39 +1,116 @@
-# Netangel::Dns
+# NetAngel DNS Filter Server
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/netangel/dns`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+DNS-based web filter server with blacklists, whitelists, SafeSearch, and per-client customization.
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'netangel-dns'
+```bash
+gem install netangel-dns
 ```
 
-And then execute:
+## Quick start
 
-    $ bundle
+Create a new app
 
-Or install it yourself as:
+```bash
+netangel-dns new my_app
+cd my_app
+# Take a look at configuration.rb
+```
 
-    $ gem install netangel-dns
+### Use the porn blacklist
+
+```
+netangel-dns blacklist remote-list
+netangel-dns blacklist download porn
+netangel-dns blacklist enable porn
+netangel-dns blacklist sync
+```
+
+### Assign client to the blacklist
+
+```
+netangel-dns client add 127.0.0.1
+netangel-dns client blacklists 127.0.0.1 --add porn
+```
+
+### Start DNS server
+
+```
+netangel-dns server start --verbose
+```
+
+### Now test your server using nslookup
+
+```bash
+nslookup -port=5300 google.com 127.0.0.1
+# Should return successfully
+
+nslookup -port=5300 sex.com 127.0.0.1
+# Should fail because it is in the porn blacklist
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+netangel-dns new [APP_NAME]  # Create a new NetAngel DNS application
+netangel-dns blacklist       # Download, sync, and manage blacklists
+netangel-dns client          # Add, delete, and manage clients
+netangel-dns safesearch      # Add, delete, and manage safesearch IPs
+netangel-dns server          # Start or stop the DNS server
+netangel-dns version         # Display the program version
+netangel-dns help [COMMAND]  # Describe available commands or one specific command
+```
 
-## Development
+### Download, sync, and manage blacklists
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```
+netangel-dns blacklist delete [NAME]    # Delete blacklist from system
+netangel-dns blacklist disable [NAME]   # Disable blacklist
+netangel-dns blacklist download [NAME]  # Download blacklist
+netangel-dns blacklist enable [NAME]    # Enable blacklist
+netangel-dns blacklist help [COMMAND]   # Describe subcommands or one specific subcommand
+netangel-dns blacklist list             # List available local blacklists
+netangel-dns blacklist remote-list      # List available blacklists from remote server
+netangel-dns blacklist sync             # Insert enabled blacklists into datastore
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### Add, delete, and manage clients
+
+```
+netangel-dns client add [IP_ADDRESS]              # Add a new client IP address for customization
+netangel-dns client blacklists [IP or ID]         # View and manage blacklists assigned to a client
+netangel-dns client custom-blacklist [IP or ID]   # View and manage custom blacklist sites for a client
+netangel-dns client custom-whitelist [IP or ID]   # View and manage custom whitelist sites for a client
+netangel-dns client delete [IP or ID]             # Delete client
+netangel-dns client get-client-id [IP_ADDRESS]    # Return the client ID of an IP address
+netangel-dns client get-ip-address [CLIENT_ID]    # Return the IP address of a client
+netangel-dns client help [COMMAND]                # Describe subcommands or one specific subcommand
+netangel-dns client list                          # List all clients with associated IP addresses
+netangel-dns client reassign [CLIENT_ID] --to=IP  # Reassign a client to a different IP address
+netangel-dns client safesearch [IP or ID]         # View and manage safesearch settings for a client
+netangel-dns client whitelists [IP or ID]         # View and manage whitelists assigned to a client
+```
+
+### Add, delete, and manage safesearch IPs
+
+```
+netangel-dns safesearch
+```
+
+### Start or stop the DNS server
+
+
+```
+netangel-dns server help [COMMAND]  # Describe subcommands or one specific subcommand
+netangel-dns server start           # Start DNS server
+netangel-dns server status          # Server status
+netangel-dns server stop            # Stop DNS server
+```
 
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/net-angel/netangel-dns.
-
 
 ## License
 

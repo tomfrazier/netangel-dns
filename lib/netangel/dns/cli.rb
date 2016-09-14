@@ -188,6 +188,12 @@ module Netangel
       end
 
       class Main < Thor
+        # Pre-hook before running any command
+        def initialize( *args )
+          super
+          ::Verbose ||= options[:verbose]
+        end
+
         class_option :verbose, aliases: '-v', type: :boolean, default: false
 
         desc 'version', 'Display the program version'
@@ -207,7 +213,7 @@ module Netangel
         subcommand 'client', Client
 
         desc 'safesearch', 'Add, delete, and manage safesearch IPs'
-        subcommand 'safesearch', Client
+        subcommand 'safesearch', Safesearch
 
         desc 'blacklist', 'Download, sync, and manage blacklists'
         subcommand 'blacklist', Blacklist

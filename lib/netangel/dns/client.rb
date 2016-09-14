@@ -44,8 +44,7 @@ module Netangel
       end
 
       def self.blacklists( argument, add:, remove: )
-        # Check to see if blacklist attempting to add/remove actually exists!
-
+        # TODO: Check to see if blacklist attempting to add/remove actually exists!
         list_update( argument, list_name: 'blacklists', add: add, remove: remove )
       end
 
@@ -91,7 +90,11 @@ module Netangel
         end
 
         all = DataStore.list( list_name, id: client_id )
-        puts all
+        if all.empty?
+          puts "No items in the #{list_name} for #{argument}. Use \"-a\" to add something."
+        else
+          puts all
+        end
       end
     end
   end

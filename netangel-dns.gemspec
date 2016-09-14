@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Eric Terry']
   spec.email         = ['eric@netangel.com']
 
-  spec.summary       = 'NetAngel DNS filter'
-  spec.description   = 'DNS-based web filter server with blacklists, SafeSearch, and per-device customization.'
+  spec.summary       = 'NetAngel DNS Filter Server'
+  spec.description   = 'DNS-based web filter server with blacklists, whitelists, SafeSearch, and per-client customization.'
   spec.homepage      = 'https://www.netangel.com/dns'
   spec.license       = 'GPL-3.0'
 
