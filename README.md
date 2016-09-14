@@ -76,13 +76,13 @@ netangel-dns client safesearch 127.0.0.1 --add google
 
 ```
 netangel-dns client custom-blacklist 127.0.0.1 --add facebook.com instagram.com
-``
+```
 
 ### Allow a site to be accessed even if in a blacklist
 
 ```
 netangel-dns client custom-whitelist 127.0.0.1 --add playboy.com
-``
+```
 
 ## Commands
 
