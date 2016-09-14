@@ -11,16 +11,20 @@ module Netangel
         puts client_id
       end
 
-      def self.get_ip_address( client_id )
-        puts DataStore.lookup( 'client', id: client_id, key: 'ip' )
+      def self.get_ip_address( client_id, output: true )
+        ip_address = DataStore.lookup( 'client', id: client_id, key: 'ip' )
+        puts ip_address if output
+        ip_address
       end
 
-      def self.get_client_id( ip_address )
-        puts DataStore.reverse_lookup( 'client', key: ip_address )&.to_i
+      def self.get_client_id( ip_address, output: true )
+        client_id = DataStore.reverse_lookup( 'client', key: ip_address )&.to_i
+        puts client_id if output
+        client_id
       end
 
       def self.reassign( client_id, to: )
-        original_ip_address = DataStore.lookup( 'client', id: client_id, key: 'ip' )
+        original_ip_address = get_ip_address( client_id, output: false )
         abort "Client ID #{client_id} doesn't exist!".red unless original_ip_address
         other_client_id = DataStore.reverse_lookup( 'client', key: to )
         DataStore.delete( 'client', id: other_client_id, key: 'ip' )
@@ -44,7 +48,6 @@ module Netangel
       end
 
       def self.blacklists( argument, add:, remove: )
-        # TODO: Check to see if blacklist attempting to add/remove actually exists!
         list_update( argument, list_name: 'blacklists', add: add, remove: remove )
       end
 
@@ -68,24 +71,39 @@ module Netangel
 
       def self.argument_to_client_id( argument )
         if argument.ip_address?
-          client_id = DataStore.reverse_lookup( 'client', key: argument )
+          client_id = get_client_id( argument, output: false )
         else
           client_id = argument
         end
-        client_id
       end
 
       def self.list_update( argument, list_name:, add:, remove: )
         type_lists = Netangel::Dns::Blacklist.list( output: false )
         client_id = argument_to_client_id( argument )
 
+        # Check to see if client_id exists
+        abort "Client ID #{client_id} doesn't exist!".red unless get_ip_address( client_id, output: false )
+
         add.each do |name|
-          found = type_lists[list_name]&.find { |entity, enabled| ( entity == name ) && enabled }
+          if list_name == 'safesearch'
+            safesearch_settings = Netangel::Dns::config.safesearch_lists[name] || {}
+            safesearch_list_name = safesearch_settings[:list_name]
+            abort "Cannot add '#{name}' to #{list_name}! It is not in 'safesearch_lists' in your configuration.".red unless safesearch_list_name
+            found = type_lists[list_name]&.find { |entity, enabled| ( entity == safesearch_list_name ) && enabled }
+          elsif list_name == 'custom_blacklist' || list_name == 'custom_whitelist'
+            name = name.sub( /^www\./, '' ) # Remove "www" from beginning of domain name
+            found = true # Don't check if it exists because it's a custom site
+          else
+            found = type_lists[list_name]&.find { |entity, enabled| ( entity == name ) && enabled }
+          end
           abort "Cannot add '#{name}' to #{list_name}! It has either not been downloaded yet or is not enabled.".red unless found
           DataStore.add_to_list( list_name, id: client_id, value: name )
         end
 
         remove.each do |name|
+          if list_name == 'custom_blacklist' || list_name == 'custom_whitelist'
+            name = name.sub( /^www\./, '' ) # Remove "www" from beginning of domain name
+          end
           DataStore.remove_from_list( list_name, id: client_id, value: name )
         end
 

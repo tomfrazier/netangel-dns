@@ -10,6 +10,7 @@ module Netangel
       attr_accessor :enabled_safesearch
       attr_accessor :git
       attr_accessor :redis
+      attr_accessor :safesearch_lists
       attr_accessor :upstream_dns
 
       def initialize
@@ -18,6 +19,7 @@ module Netangel
         @enabled_safesearch = []
         @git = {}
         @redis = {}
+        @safesearch_lists = {}
       end
     end
 

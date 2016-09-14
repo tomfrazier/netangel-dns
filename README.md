@@ -4,13 +4,15 @@ DNS-based web filter server with blacklists, whitelists, SafeSearch, and per-cli
 
 ## Installation
 
+Make sure you have the [Redis](http://redis.io) server installed.
+
 ```bash
 gem install netangel-dns
 ```
 
 ## Quick start
 
-Create a new app
+### Create a new app
 
 ```bash
 netangel-dns new my_app
@@ -50,13 +52,44 @@ nslookup -port=5300 sex.com 127.0.0.1
 # Should fail because it is in the porn blacklist
 ```
 
-## Usage
+## Usage Examples
+
+### Block porn
+
+```
+netangel-dns blacklist download porn
+netangel-dns blacklist enable porn
+netangel-dns blacklist sync
+netangel-dns client safesearch 127.0.0.1 --add porn
+```
+
+### Enforce Google SafeSearch
+
+```
+netangel-dns blacklist download ss-google
+netangel-dns blacklist enable ss-google
+netangel-dns blacklist sync
+netangel-dns client safesearch 127.0.0.1 --add google
+```
+
+### Block specific sites not in a blacklist
+
+```
+netangel-dns client custom-blacklist 127.0.0.1 --add facebook.com instagram.com
+``
+
+### Allow a site to be accessed even if in a blacklist
+
+```
+netangel-dns client custom-whitelist 127.0.0.1 --add playboy.com
+``
+
+## Commands
 
 ```
 netangel-dns new [APP_NAME]  # Create a new NetAngel DNS application
 netangel-dns blacklist       # Download, sync, and manage blacklists
 netangel-dns client          # Add, delete, and manage clients
-netangel-dns safesearch      # Add, delete, and manage safesearch IPs
 netangel-dns server          # Start or stop the DNS server
 netangel-dns version         # Display the program version
 netangel-dns help [COMMAND]  # Describe available commands or one specific command
@@ -92,14 +125,7 @@ netangel-dns client safesearch [IP or ID]         # View and manage safesearch s
 netangel-dns client whitelists [IP or ID]         # View and manage whitelists assigned to a client
 ```
 
-### Add, delete, and manage safesearch IPs
-
-```
-netangel-dns safesearch
-```
-
 ### Start or stop the DNS server
-
 
 ```
 netangel-dns server help [COMMAND]  # Describe subcommands or one specific subcommand

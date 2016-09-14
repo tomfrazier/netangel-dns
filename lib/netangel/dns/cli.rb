@@ -109,32 +109,6 @@ module Netangel
         end
       end
 
-      # TODO: Do this!!
-      class Safesearch < Thor
-        # Pre-hook before running any command
-        def initialize( *args )
-          super
-          Netangel::Dns.load_config
-          ::DataStore ||= Netangel::Dns::RedisApi.new
-        end
-
-        desc 'add [IP_ADDRESS]', 'Add a new client IP address for customization'
-        def add( ip_address )
-          Netangel::Dns::Safesearch.add( ip_address )
-        end
-
-        desc 'reassign [CLIENT_ID]', 'Reassign a client to a different IP address'
-        option :to, type: :string, required: true, banner: 'IP'
-        def reassign( client_id )
-          Netangel::Dns::Safesearch.reassign( client_id, to: options[:to] )
-        end
-
-        desc 'delete [IP or ID]', 'Delete client'
-        def delete( argument )
-          Netangel::Dns::Safesearch.delete( argument )
-        end
-      end
-
       class Blacklist < Thor
         desc 'remote-list', 'List available blacklists from remote server'
         option :git_url,    aliases: '-u', type: :string
@@ -211,9 +185,6 @@ module Netangel
 
         desc 'client', 'Add, delete, and manage clients'
         subcommand 'client', Client
-
-        desc 'safesearch', 'Add, delete, and manage safesearch IPs'
-        subcommand 'safesearch', Safesearch
 
         desc 'blacklist', 'Download, sync, and manage blacklists'
         subcommand 'blacklist', Blacklist

@@ -19,9 +19,9 @@ module Netangel
           return
         end
 
-        # TODO: Currently only support 'A' records
+        # TODO: Currently only support 'A' records!
         if resource_class == Resolv::DNS::Resource::IN::A
-          domain_name.sub!( 'www.', '' )
+          domain_name.sub!( /^www\./, '' ) # Remove "www" from beginning of domain name
 
           ####################
           # Custom Whitelist #
@@ -75,24 +75,26 @@ module Netangel
           # SafeSearch #
           ##############
 
-          Netangel::Dns::config.enabled_safesearch.each do |safesearch_list|
-            if DataStore.in_list?( 'safesearch', id: client_id, value: safesearch_list )
-              if DataStore.in_list?( 'sites', id: safesearch_list, value: domain_name )
-                puts "#{ip_address}\t#{domain_name}\t#{'ENFORCED SAFESEARCH!'.blue}" if Verbose
-                safesearch_ip = DataStore.find_safesearch_ip( safesearch_list )
-                if safesearch_ip
-                  transaction.respond!( safesearch_ip )
-                else # If there is no SafeSearch IP, just block the site
-                  transaction.fail!( :NXDomain )
+          Netangel::Dns::config.safesearch_lists.each do |safesearch_name, safesearch_settings|
+            safesearch_list_name = safesearch_settings[:list_name]
+            if Netangel::Dns::config.enabled_safesearch.include?( safesearch_list_name )
+              if DataStore.in_list?( 'safesearch', id: client_id, value: safesearch_name )
+                if DataStore.in_list?( 'sites', id: safesearch_list_name, value: domain_name )
+                  puts "#{ip_address}\t#{domain_name}\t#{'ENFORCED SAFESEARCH!'.blue}" if Verbose
+                  if safesearch_settings[:ip]
+                    transaction.respond!( safesearch_settings[:ip] )
+                  else # If there is no SafeSearch IP, just block the site
+                    transaction.fail!( :NXDomain )
+                  end
+                  return
                 end
-                return
               end
             end
           end
         end
 
         # If the DNS query has gotten to this point, forward requst to upstream server
-        puts "#{ip_address}\t#{domain_name}" if Verbose
+        puts "#{ip_address}\t#{domain_name}\tPASSTHROUGH" if Verbose
         transaction.passthrough!( @resolver )
 
       rescue ArgumentError => e
@@ -147,3 +149,7 @@ end
 # Job on rails dashboard to update preferences on redis (24-hours)?? OR Have a "loading-in" on redis startup
 # Use redis SOLEY for device preferences on rails?  - That way there is no syncing!!!  :)
 # NEED to get vpn server and dashboard in same LAN!!!
+
+# Verify configuration file first and exit if no good!
+
+# Support hard coded DNS entries (for things like netflix and pokemon go)
