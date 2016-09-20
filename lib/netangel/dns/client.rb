@@ -5,6 +5,7 @@ module Netangel
 
     class Client
       def self.add( ip_address )
+        abort 'No need to add a default client as it already implicitly exists.'.red if ip_address == 'default'
         abort "IP #{ip_address} has already been added!".red if DataStore.reverse_lookup( 'client', key: ip_address )
         client_id = DataStore.increment_id( 'client' )
         DataStore.add( 'client', id: client_id, key: 'ip', value: ip_address )
@@ -12,18 +13,21 @@ module Netangel
       end
 
       def self.get_ip_address( client_id, output: true )
+        return client_id if client_id == 'default'
         ip_address = DataStore.lookup( 'client', id: client_id, key: 'ip' )
         puts ip_address if output
         ip_address
       end
 
       def self.get_client_id( ip_address, output: true )
+        abort 'There is no client ID for the default client.'.red if ip_address == 'default'
         client_id = DataStore.reverse_lookup( 'client', key: ip_address )&.to_i
         puts client_id if output
         client_id
       end
 
       def self.reassign( client_id, to: )
+        abort 'Cannot reassign the default client.'.red if client_id == 'default'
         original_ip_address = get_ip_address( client_id, output: false )
         abort "Client ID #{client_id} doesn't exist!".red unless original_ip_address
         other_client_id = DataStore.reverse_lookup( 'client', key: to )
@@ -41,6 +45,7 @@ module Netangel
       end
 
       def self.delete( argument )
+        abort 'Cannot delete the default client.'.red if argument == 'default'
         client_id = argument_to_client_id( argument )
         DataStore.delete( 'client', id: client_id, key: 'ip',
           associated_lists: ['blacklists', 'whitelists', 'safesearch', 'custom_blacklist', 'custom_whitelist']
@@ -72,8 +77,10 @@ module Netangel
       def self.argument_to_client_id( argument )
         if argument.ip_address?
           client_id = get_client_id( argument, output: false )
-        else
+        elsif argument.numeric? || argument == 'default'
           client_id = argument
+        else
+          abort "Cannot determine client ID from '#{argument}'".red
         end
       end
 

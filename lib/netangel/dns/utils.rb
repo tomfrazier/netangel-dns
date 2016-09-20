@@ -73,10 +73,21 @@ class String
   def ip_address?
     !!( self =~ Resolv::IPv4::Regex )
   end
+
+  # Taken from http://stackoverflow.com/a/2095512/4681454
+  def numeric?
+    true if Float self rescue false
+  end
 end
 
 class Fixnum
   def ip_address?
     false
+  end
+end
+
+class Numeric
+  def numeric?
+    true
   end
 end

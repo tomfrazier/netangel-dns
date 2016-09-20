@@ -27,13 +27,7 @@ netangel-dns blacklist remote-list
 netangel-dns blacklist download porn
 netangel-dns blacklist enable porn
 netangel-dns blacklist sync
-```
-
-### Assign client to the blacklist
-
-```
-netangel-dns client add 127.0.0.1
-netangel-dns client blacklists 127.0.0.1 --add porn
+netangel-dns client blacklists default --add porn
 ```
 
 ### Start DNS server
@@ -54,13 +48,24 @@ nslookup -port=5300 sex.com 127.0.0.1
 
 ## Usage Examples
 
+When using the `client` command, you can set default settings that apply to **all** clients or you can target a specific client.  To configure settings that apply to all clients, use "default" as the argument.  To configure settings for a specific client, use the IP address as the argument.
+
+```bash
+# For example, to enforce YouTube Restricted Mode on everyone
+netangel-dns client safesearch default --add youtube
+
+# But you wanted 10.2.7.44 to have YouTube STRICT Restricted Mode on
+netangel-dns client add 10.2.7.44  # Only have to do this once per client!
+netangel-dns client safesearch 10.2.7.44 --add youtube-strict
+```
+
 ### Block porn
 
 ```
 netangel-dns blacklist download porn
 netangel-dns blacklist enable porn
 netangel-dns blacklist sync
-netangel-dns client safesearch 127.0.0.1 --add porn
+netangel-dns client blacklists default --add porn
 ```
 
 ### Enforce Google SafeSearch
@@ -69,19 +74,19 @@ netangel-dns client safesearch 127.0.0.1 --add porn
 netangel-dns blacklist download ss-google
 netangel-dns blacklist enable ss-google
 netangel-dns blacklist sync
-netangel-dns client safesearch 127.0.0.1 --add google
+netangel-dns client safesearch default --add google
 ```
 
 ### Block specific sites not in a blacklist
 
 ```
-netangel-dns client custom-blacklist 127.0.0.1 --add facebook.com instagram.com
+netangel-dns client custom-blacklist 192.168.0.5 --add facebook.com instagram.com
 ```
 
 ### Allow a site to be accessed even if in a blacklist
 
 ```
-netangel-dns client custom-whitelist 127.0.0.1 --add playboy.com
+netangel-dns client custom-whitelist 192.168.0.5 --add playboy.com
 ```
 
 ## Commands
